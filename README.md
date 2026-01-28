@@ -1,8 +1,9 @@
 
 This project is purpose to practice devops skill. Application code in /src is copy from [ microservices-demo ](https://github.com/GoogleCloudPlatform/microservices-demo.git)
 
-![Project-Architecture](https://raw.githubusercontent.com/NetlutZ/devops-project/main/images/Project-Architecture.jpg)
-
+<p align="center">
+  <img src="images/Project-Architecture.jpg" width="1000"/>
+</p>
 
 - [x] Create kubernetes file
 - [x] Jenkins to build and push image
