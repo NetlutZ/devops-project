@@ -1,11 +1,68 @@
+// pipeline {
+//     agent any 
+
+//     environment {
+//         GIT_REPO_NAME = "devops-project"
+//         GIT_USER_NAME = "tilnel"
+//         IMAGE_NAME = "boutique-paymentservice"
+//         REPO_URL = "tilnel/boutique-paymentservice"
+//     }
+
+//     stages {
+//         stage('Cleaning Workspace') {
+//             steps {
+//                 cleanWs()
+//             }
+//         }
+
+//         stage('Checkout') {
+//             steps {
+//                 checkout scm
+//             }
+//         }
+
+//         stage('Docker Login') {
+//             steps {
+//                 withCredentials([usernamePassword(
+//                     credentialsId: 'dockerhub-creds',
+//                     usernameVariable: 'DOCKER_USER',
+//                     passwordVariable: 'DOCKER_PASS'
+//                 )]) {
+//                     sh '''
+//                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+//                     '''
+//                 }
+//             }
+//         }
+
+//         stage('Docker Image Build') {
+//             steps {
+//                 dir('src/paymentservice') {
+//                     sh '''
+//                         docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
+//                     '''
+//                 }
+//             }
+//         }
+
+//         stage('Docker Image Push') {
+//             steps {
+//                 sh '''
+//                     docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${REPO_URL}:${BUILD_NUMBER}
+//                     docker push ${REPO_URL}:${BUILD_NUMBER}
+//                 '''
+//             }
+//         }
+//     }
+// }
+
+
 pipeline {
     agent any 
 
     environment {
-        GIT_REPO_NAME = "devops-project"
-        GIT_USER_NAME = "tilnel"
         IMAGE_NAME = "boutique-paymentservice"
-        REPO_URL = "tilnel/boutique-paymentservice"
+        REPO_URL = "381492206162.dkr.ecr.us-east-1.amazonaws.com/boutique/paymentservice"
     }
 
     stages {
@@ -21,36 +78,25 @@ pipeline {
             }
         }
 
-        stage('Docker Login') {
+        stage("Docker Image Build") {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    '''
+                script {
+                    dir('src/paymentservice') {
+                        sh 'docker build -t ${IMAGE_NAME} .'
+                    }
                 }
             }
         }
 
-        stage('Docker Image Build') {
+        stage("ECR Image Pushing") {
             steps {
-                dir('src/paymentservice') {
+                script {
                     sh '''
-                        docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
-                    '''
-                }
-            }
-        }
-
-        stage('Docker Image Push') {
-            steps {
-                sh '''
-                    docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${REPO_URL}:${BUILD_NUMBER}
+                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 381492206162.dkr.ecr.us-east-1.amazonaws.com
+                    docker tag ${IMAGE_NAME}:latest ${REPO_URL}:${BUILD_NUMBER}
                     docker push ${REPO_URL}:${BUILD_NUMBER}
-                '''
+                    '''
+                }
             }
         }
     }

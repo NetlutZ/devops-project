@@ -61,6 +61,7 @@ pipeline {
     agent any 
 
     environment {
+        IMAGE_NAME = "boutique-adservice"
         REPO_URL = "381492206162.dkr.ecr.us-east-1.amazonaws.com/boutique/adservice"
     }
 
@@ -81,7 +82,7 @@ pipeline {
             steps {
                 script {
                     dir('src/adservice') {
-                        sh 'docker build -t adservice .'
+                        sh 'docker build -t ${IMAGE_NAME} .'
                     }
                 }
             }
@@ -92,7 +93,7 @@ pipeline {
                 script {
                     sh '''
                     aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 381492206162.dkr.ecr.us-east-1.amazonaws.com
-                    docker tag adservice:latest ${REPO_URL}:${BUILD_NUMBER}
+                    docker tag ${IMAGE_NAME}:latest ${REPO_URL}:${BUILD_NUMBER}
                     docker push ${REPO_URL}:${BUILD_NUMBER}
                     '''
                 }
